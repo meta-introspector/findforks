@@ -1,3 +1,4 @@
+#rewrite in rust using strong types and exposing all types
 #!/usr/bin/python3
 
 import argparse
@@ -24,13 +25,14 @@ def find_forks(remote):
     (username, project) = parse_git_remote_output(repo_url_stdout)
 
     GITHUB_FORK_URL = u"https://api.github.com/repos/{username}/{project}/forks"
-
+    resp = None
     try:
         resp = urllib.request.urlopen(GITHUB_FORK_URL.format(username=username, project=project))
     except urllib.error.HTTPError as e:
+        print(e)
         if e.code == 404:
             raise StopIteration
-
+    print(resp)
     resp_json += json.loads(resp.read())
 
     while github_resp_next_page(resp):
