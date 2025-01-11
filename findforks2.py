@@ -26,35 +26,42 @@ def find_forks(remote):
 
     (username, project) = parse_git_remote_output(repo_url_stdout)
 
-    for page in range(1,1000):
-
+    if (not os.path.exists("data")):
+        os.path.mkdir("data") # just create it
+       
+    for page in range(1,98): # eliza has 97
         datafile = f"data/{username}{project}{page}.json"
         GITHUB_FORK_URL = u"https://api.github.com/repos/{username}/{project}/forks?page={page}"
+        resp_json = []
         if os.path.exists(datafile):
             with open(datafile) as fi:
-                data = json.load(fi)
-                #print(data)
+                print("Loading", datafile)
+                resp_json = json.load(fi)
+                
         else:
+            print("missing", datafile)
             try:
                 url = GITHUB_FORK_URL.format(username=username, project=project,page=page)
                 print(url)
                 time.sleep(3)
                 resp = urllib.request.urlopen(url)
                 jsond = resp.read().decode("utf8")
-                #resp_json = json.loads(jsond)
-                if len(jsond) ==0: # empty array
+                resp_json = json.loads(jsond)
+                if len(resp_json) ==0: # empty array
+                    print("finished",url,resp_json)
                     raise StopIteration
                 with open(datafile,"w") as fo:
                     fo.write(jsond)
-        #for fork in resp_json:
-        #    print(fork)
-        #    yield (fork['owner']['login'], fork['ssh_url'])
-
+                    
             except urllib.error.HTTPError as e:
                 if e.code == 404:
                     raise StopIteration
                 else:
                     print(e)
+
+        for fork in resp_json:
+            print(fork['owner']['login'])
+            yield (fork['owner']['login'], fork['ssh_url'])
 
 
 
